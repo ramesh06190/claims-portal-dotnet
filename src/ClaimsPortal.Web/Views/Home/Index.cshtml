@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<p class="eyebrow">Code sample</p>
+<h1>Claims Portal</h1>
+<p class="lead">
+    A small weekly benefit claims app built with ASP.NET Core MVC, a REST API, EF Core on SQL Server
+    and the transactional outbox pattern. Every page is built to WCAG 2.1 AA and works without JavaScript.
+</p>
+
+<div class="hero__actions">
+    <a class="btn btn--primary" href="/claims/new">File a weekly claim</a>
+    <a class="btn btn--ghost" href="/claims">See all claims</a>
+</div>
+
+<h2>What to look at</h2>
+<ul class="card-grid" role="list">
+    <li class="card">
+        <h3 class="card__title">Accessible server side validation</h3>
+        <p>Errors come back in a focused summary that links to each field, with <code>aria-invalid</code> and <code>aria-describedby</code> added by a custom tag helper.</p>
+    </li>
+    <li class="card">
+        <h3 class="card__title">REST API</h3>
+        <p>Paging, sorting and validation errors as ProblemDetails. See the <a href="/openapi/v1.json">OpenAPI document</a>.</p>
+    </li>
+    <li class="card">
+        <h3 class="card__title">Integration ready</h3>
+        <p>Each claim writes an outbox message in the same transaction, and a background worker publishes it with retries.</p>
+    </li>
+</ul>

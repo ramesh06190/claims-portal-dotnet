@@ -1,0 +1,40 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.Master.cs" Inherits="ClaimsPortal.WebForms.SiteMaster" %>
+<!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title><%: Page.Title %> | Claims Portal (Web Forms)</title>
+    <link rel="stylesheet" href="<%: ResolveUrl("~/Content/design-system.css") %>" />
+    <link rel="stylesheet" href="<%: ResolveUrl("~/Content/app.css") %>" />
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <a class="brand" href="<%: ResolveUrl("~/") %>">
+                <span class="brand__mark" aria-hidden="true">CP</span>
+                <span class="brand__name">Claims Portal</span>
+                <span class="visually-hidden">, home</span>
+            </a>
+        </div>
+    </header>
+
+    <%-- One server form wraps the page, as Web Forms requires. The main landmark sits inside it. --%>
+    <form id="PageForm" runat="server">
+        <main id="main" tabindex="-1">
+            <div class="container section section--tight">
+                <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+            </div>
+        </main>
+    </form>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Legacy style ASP.NET Web Forms page on .NET Framework 4.8, built to WCAG 2.1 AA. All data is made up.</p>
+        </div>
+    </footer>
+</body>
+</html>

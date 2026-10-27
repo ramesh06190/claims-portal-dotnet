@@ -1,0 +1,119 @@
+@model ClaimForm
+@{
+    ViewData["Title"] = "File a weekly claim";
+    bool HasError(string key) => ViewData.ModelState.TryGetValue(key, out var e) && e.Errors.Count > 0;
+    string DescribedBy(string hintId, string key) => HasError(key) ? $"{hintId} {key}-error" : hintId;
+}
+
+<div class="claim-layout">
+    <div>
+        <partial name="_ErrorSummary" model="ClaimForm.FieldOrder" />
+
+        <h1>File a weekly claim</h1>
+        <p class="lead">All questions are required unless they say optional.</p>
+
+        <form class="form" method="post" asp-action="New" novalidate>
+            <h2 class="form__section-title">Your information</h2>
+
+            <div class="field">
+                <label asp-for="ClaimantName">Full name</label>
+                <field-error key="ClaimantName" />
+                <input asp-for="ClaimantName" type="text" autocomplete="name" spellcheck="false" />
+            </div>
+
+            <div class="field">
+                <label asp-for="ClaimantId">Claimant ID</label>
+                <p class="field__hint" id="ClaimantId-hint">8 digits, found on your approval letter</p>
+                <field-error key="ClaimantId" />
+                <input asp-for="ClaimantId" type="text" inputmode="numeric" class="input--short" aria-describedby="ClaimantId-hint" />
+            </div>
+
+            <div class="field">
+                <label asp-for="Email">Email address (optional)</label>
+                <field-error key="Email" />
+                <input asp-for="Email" type="email" autocomplete="email" spellcheck="false" />
+            </div>
+
+            <div class="field">
+                <label asp-for="Phone">Phone number (optional)</label>
+                <input asp-for="Phone" type="tel" autocomplete="tel" class="input--medium" />
+            </div>
+
+            <div class="field">
+                <label asp-for="Program">Benefit program</label>
+                <select asp-for="Program" class="select">
+                    @foreach (var program in Enum.GetValues<BenefitProgram>())
+                    {
+                        <option value="@program" selected="@(Model.Program == program)">@DisplayText.For(program)</option>
+                    }
+                </select>
+            </div>
+
+            <fieldset class="field date-input" aria-describedby="@DescribedBy("WeekEnding-hint", "WeekEnding")">
+                <legend>Week ending date</legend>
+                <p class="field__hint" id="WeekEnding-hint">The Saturday at the end of the week you are claiming for, for example 17 10 2026</p>
+                <field-error key="WeekEnding" />
+                <div class="date-input__parts">
+                    <div class="date-input__part">
+                        <label asp-for="WeekEndingDay">Day</label>
+                        <input asp-for="WeekEndingDay" type="text" inputmode="numeric" maxlength="2" class="input--2" error-key="WeekEnding" />
+                    </div>
+                    <div class="date-input__part">
+                        <label asp-for="WeekEndingMonth">Month</label>
+                        <input asp-for="WeekEndingMonth" type="text" inputmode="numeric" maxlength="2" class="input--2" error-key="WeekEnding" />
+                    </div>
+                    <div class="date-input__part">
+                        <label asp-for="WeekEndingYear">Year</label>
+                        <input asp-for="WeekEndingYear" type="text" inputmode="numeric" maxlength="4" class="input--4" error-key="WeekEnding" />
+                    </div>
+                </div>
+            </fieldset>
+
+            <h2 class="form__section-title">This week</h2>
+
+            <fieldset class="field">
+                <legend>Did you work during this week?</legend>
+                <field-error key="WorkedThisWeek" />
+                <div class="radio">
+                    <input asp-for="WorkedThisWeek" type="radio" value="yes" id="WorkedThisWeek-yes" />
+                    <label for="WorkedThisWeek-yes">Yes</label>
+                </div>
+                <div class="radio">
+                    <input asp-for="WorkedThisWeek" type="radio" value="no" id="WorkedThisWeek-no" />
+                    <label for="WorkedThisWeek-no">No</label>
+                </div>
+            </fieldset>
+
+            <div class="field">
+                <label asp-for="GrossEarnings">Gross earnings</label>
+                <p class="field__hint" id="GrossEarnings-hint">Only if you worked this week. Before taxes, in dollars.</p>
+                <field-error key="GrossEarnings" />
+                <div class="input-prefix">
+                    <span class="input-prefix__symbol" aria-hidden="true">$</span>
+                    <input asp-for="GrossEarnings" type="text" inputmode="decimal" class="input--medium" aria-describedby="GrossEarnings-hint" />
+                </div>
+            </div>
+
+            <fieldset class="field">
+                <legend>Were you able and available for work?</legend>
+                <field-error key="AbleAndAvailable" />
+                <div class="radio">
+                    <input asp-for="AbleAndAvailable" type="radio" value="yes" id="AbleAndAvailable-yes" />
+                    <label for="AbleAndAvailable-yes">Yes</label>
+                </div>
+                <div class="radio">
+                    <input asp-for="AbleAndAvailable" type="radio" value="no" id="AbleAndAvailable-no" />
+                    <label for="AbleAndAvailable-no">No</label>
+                </div>
+            </fieldset>
+
+            <button class="btn btn--primary" type="submit">Submit weekly claim</button>
+        </form>
+    </div>
+
+    <aside class="claim-aside" aria-labelledby="help-title">
+        <h2 id="help-title">Before you start</h2>
+        <p>You need your claimant ID and, if you worked, your gross earnings for the week.</p>
+        <p>Your answers are checked on the server, so the form works without JavaScript.</p>
+    </aside>
+</div>

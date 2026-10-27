@@ -1,0 +1,15 @@
+<!--
+  ASP.NET Web Forms on .NET Framework 4.8, in an SDK style project so it builds with
+  `dotnet build` and in CI (MSBuild.SDK.SystemWeb). Run it from Visual Studio with IIS Express.
+-->
+<Project Sdk="MSBuild.SDK.SystemWeb/4.0.107">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <!-- Implicit usings are a .NET (Core) feature; Web Forms code behind lists its usings -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Visual Studio's MSBuild compiler can be older than the .NET SDK's code style analyzers -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+</Project>

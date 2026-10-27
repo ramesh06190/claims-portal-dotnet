@@ -1,0 +1,62 @@
+@model ClaimListViewModel
+@{
+    ViewData["Title"] = "All claims";
+    var results = Model.Page;
+    var query = Model.Query;
+    string PageUrl(int number) => Url.Action("Index", new { page = number, pageSize = query.PageSize, sort = query.Sort, direction = query.Direction })!;
+}
+
+<h1>All claims</h1>
+<p class="data-table__status">
+    Showing @results.FirstItem to @results.LastItem of @results.TotalCount claims, @Model.SortedByText.
+</p>
+
+<div class="table-wrap" role="region" aria-labelledby="claims-caption" tabindex="0">
+    <table class="table table--sortable">
+        <caption id="claims-caption">Weekly claims. Select a column heading to sort.</caption>
+        <thead>
+            <tr>
+                @foreach (var (field, label) in ClaimListViewModel.Columns)
+                {
+                    var url = Url.Action("Index", new { sort = field, direction = Model.NextDirection(field), pageSize = query.PageSize });
+                    <th scope="col" aria-sort="@Model.AriaSort(field)" class="@(field == ClaimSortField.Amount ? "num" : null)">
+                        <a class="sort-button" href="@url">@label<span class="sort-button__icon" aria-hidden="true"></span></a>
+                    </th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var claim in results.Items)
+            {
+                <tr>
+                    <th scope="row">@claim.ClaimNumber</th>
+                    <td>@claim.ClaimantName</td>
+                    <td>@DisplayText.For(claim.Program)</td>
+                    <td>@DisplayText.Date(claim.WeekEnding)</td>
+                    <td><span class="badge @DisplayText.BadgeClass(claim.Status)">@DisplayText.For(claim.Status)</span></td>
+                    <td class="num">@DisplayText.Money(claim.WeeklyAmount)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (results.TotalPages > 1)
+{
+    <nav class="pagination" aria-label="Claims pages">
+        <ul>
+            @if (results.Page > 1)
+            {
+                <li><a class="pagination__button" href="@PageUrl(results.Page - 1)"><span aria-hidden="true">&lsaquo;</span> Previous<span class="visually-hidden"> page</span></a></li>
+            }
+            @for (var i = 1; i <= results.TotalPages; i++)
+            {
+                <li><a class="pagination__button" href="@PageUrl(i)" aria-label="Page @i" aria-current="@(i == results.Page ? "page" : null)">@i</a></li>
+            }
+            @if (results.Page < results.TotalPages)
+            {
+                <li><a class="pagination__button" href="@PageUrl(results.Page + 1)">Next<span class="visually-hidden"> page</span> <span aria-hidden="true">&rsaquo;</span></a></li>
+            }
+        </ul>
+    </nav>
+}

@@ -1,0 +1,20 @@
+@* Lists every error in page order, each linking to the field to fix. site.js moves focus here on load. *@
+@model IReadOnlyList<(string Key, string FocusId)>
+@{
+    var errors = Model
+        .Where(f => ViewData.ModelState.TryGetValue(f.Key, out var entry) && entry.Errors.Count > 0)
+        .Select(f => (f.FocusId, Message: ViewData.ModelState[f.Key]!.Errors[0].ErrorMessage))
+        .ToList();
+}
+@if (errors.Count > 0)
+{
+    <div class="error-summary" id="error-summary" tabindex="-1" data-focus-on-load>
+        <h2 id="error-summary-title">There is a problem</h2>
+        <ul aria-labelledby="error-summary-title">
+            @foreach (var error in errors)
+            {
+                <li><a href="#@error.FocusId">@error.Message</a></li>
+            }
+        </ul>
+    </div>
+}

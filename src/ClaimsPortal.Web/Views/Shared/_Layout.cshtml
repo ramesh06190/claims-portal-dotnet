@@ -1,0 +1,51 @@
+﻿@{
+    // Prefixing the title with "Error:" means screen reader users hear about errors as soon as the page loads
+    var titlePrefix = ViewData.ModelState.ErrorCount > 0 ? "Error: " : "";
+    string? Current(string path, bool exact = false) =>
+        (exact ? Context.Request.Path == path : Context.Request.Path.StartsWithSegments(path)) ? "page" : null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>@titlePrefix@ViewData["Title"] | Claims Portal</title>
+    <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand__mark" aria-hidden="true">CP</span>
+                <span class="brand__name">Claims Portal</span>
+                <span class="visually-hidden">, home</span>
+            </a>
+            <nav class="site-nav site-nav--static" aria-label="Primary">
+                <ul>
+                    <li><a href="/" aria-current="@Current("/", exact: true)">Home</a></li>
+                    <li><a href="/claims/new" aria-current="@Current("/claims/new")">File a weekly claim</a></li>
+                    <li><a href="/claims" aria-current="@(Context.Request.Path == "/claims" ? "page" : null)">All claims</a></li>
+                    <li><a href="/openapi/v1.json">API</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+        <div class="container section section--tight">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container site-footer__inner">
+            <p>Claims Portal sample by Pydi Adapa. ASP.NET Core MVC on .NET 10, built to WCAG 2.1 AA. All data is made up.</p>
+        </div>
+    </footer>
+</body>
+</html>

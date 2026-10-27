@@ -1,0 +1,25 @@
+@model Claim
+@{
+    ViewData["Title"] = "Claim submitted";
+}
+
+<div class="confirmation">
+    <h1>Claim submitted</h1>
+    <p class="lead">Your reference number is <strong>@Model.ClaimNumber</strong>.</p>
+</div>
+
+<h2 class="form__section-title">What you told us</h2>
+<dl class="review">
+    <div class="review__row"><dt>Full name</dt><dd>@Model.ClaimantName</dd></div>
+    <div class="review__row"><dt>Benefit program</dt><dd>@DisplayText.For(Model.Program)</dd></div>
+    <div class="review__row"><dt>Week ending</dt><dd>@DisplayText.Date(Model.WeekEnding)</dd></div>
+    <div class="review__row"><dt>Worked this week</dt><dd>@(Model.WorkedThisWeek ? "Yes" : "No")</dd></div>
+    @if (Model.GrossEarnings is not null)
+    {
+        <div class="review__row"><dt>Gross earnings</dt><dd>@DisplayText.Money(Model.GrossEarnings.Value)</dd></div>
+    }
+    <div class="review__row"><dt>Estimated weekly amount</dt><dd>@DisplayText.Money(Model.WeeklyAmount)</dd></div>
+    <div class="review__row"><dt>Status</dt><dd><span class="badge @DisplayText.BadgeClass(Model.Status)">@DisplayText.For(Model.Status)</span></dd></div>
+</dl>
+
+<p><a href="/claims">See all claims</a></p>

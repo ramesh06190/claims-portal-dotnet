@@ -1,0 +1,17 @@
+﻿@model string
+@{
+    ViewData["Title"] = "Something went wrong";
+    var status = Context.Response.StatusCode;
+}
+
+@if (status == 404)
+{
+    <h1>Page not found</h1>
+    <p class="lead">Check the web address, or go to the <a href="/">home page</a>.</p>
+}
+else
+{
+    <h1>Sorry, something went wrong</h1>
+    <p class="lead">Try again later. If the problem continues, contact support and give them this reference:</p>
+    <p><code>@Model</code></p>
+}

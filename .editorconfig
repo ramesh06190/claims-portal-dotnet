@@ -1,0 +1,28 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+[*.{json,yml,yaml,css,js,props,csproj,slnx}]
+indent_size = 2
+
+# EF Core migrations are generated, so code analysis rules do not apply
+[**/Migrations/*.cs]
+generated_code = true
+
+# Test naming uses underscores (Method_Condition_Result) and test classes stay public for xUnit
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA2000.severity = none
+dotnet_diagnostic.CA1861.severity = none
+
+# Web Forms wires events by name (Page_Load, Button_Click), so underscores are required there
+[src/ClaimsPortal.WebForms/**.cs]
+dotnet_diagnostic.CA1707.severity = none

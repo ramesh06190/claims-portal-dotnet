@@ -1,0 +1,57 @@
+/* Small additions on top of design-system.css, which is compiled from the portfolio's Sass tokens */
+
+/* The portfolio collapses its nav behind a menu button; this app keeps the links visible and lets them wrap */
+.site-nav--static {
+  display: block;
+  order: 0;
+  flex-basis: auto;
+}
+
+.site-nav--static ul {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0;
+}
+
+.site-nav--static a {
+  padding: 0.5rem;
+}
+
+.site-nav a[aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.35em;
+}
+
+/* Sort and page links reuse the button styles from the client side components */
+a.sort-button {
+  text-decoration: none;
+}
+
+a.pagination__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.select {
+  min-height: 2.75rem;
+  max-width: 22rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.select:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.confirmation {
+  margin-bottom: 2rem;
+}

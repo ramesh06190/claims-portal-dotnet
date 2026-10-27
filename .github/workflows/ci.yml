@@ -1,0 +1,56 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dotnet:
+    name: .NET 10 build and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ClaimsPortal.slnx
+
+      - name: Build (warnings are errors, analyzers on)
+        run: dotnet build ClaimsPortal.slnx --configuration Release --no-restore
+
+      - name: Check for vulnerable packages
+        run: dotnet list ClaimsPortal.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt && ! grep -q "has the following vulnerable packages" vulnerable.txt
+
+      - name: Check the EF Core model matches the migrations
+        run: |
+          dotnet tool restore
+          dotnet ef migrations has-pending-model-changes --project src/ClaimsPortal.Infrastructure --startup-project src/ClaimsPortal.Web
+
+      - name: Test
+        run: dotnet test ClaimsPortal.slnx --configuration Release --no-build --logger "trx;LogFileName=results.trx" --collect "XPlat Code Coverage"
+
+      - name: Save test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: tests/**/TestResults/**
+
+  webforms:
+    name: Web Forms (.NET Framework 4.8) build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: msbuild src/ClaimsPortal.WebForms/ClaimsPortal.WebForms.csproj -restore -p:Configuration=Release -nologo

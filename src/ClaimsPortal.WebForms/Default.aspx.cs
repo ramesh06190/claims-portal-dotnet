@@ -53,10 +53,9 @@ namespace ClaimsPortal.WebForms
             ClaimsGrid.DataSource = claims;
             ClaimsGrid.DataBind();
             ResultCount.Text = claims.Count == 1 ? "1 claim found." : claims.Count + " claims found.";
+            // The results heading has data-focus-on-load, so after the postback the user starts
+            // at the results instead of the top of the page
             Results.Visible = true;
-
-            // After a full postback, start the user at the results instead of the top of the page
-            SetFocusOnLoad("results-title");
         }
 
         protected void ClaimsGrid_DataBound(object sender, EventArgs e)
@@ -89,7 +88,6 @@ namespace ClaimsPortal.WebForms
                 ClaimantId.Attributes["aria-invalid"] = "true";
                 ClaimantId.Attributes["aria-describedby"] = "ClaimantId-hint ClaimantId-error";
                 ClaimantId.CssClass = "input--short";
-                SetFocusOnLoad("error-summary");
             }
             else
             {
@@ -97,9 +95,5 @@ namespace ClaimsPortal.WebForms
                 ClaimantId.Attributes["aria-describedby"] = "ClaimantId-hint";
             }
         }
-
-        private void SetFocusOnLoad(string elementId) =>
-            ClientScript.RegisterStartupScript(GetType(), "focus",
-                "document.getElementById('" + elementId + "').focus();", addScriptTags: true);
     }
 }

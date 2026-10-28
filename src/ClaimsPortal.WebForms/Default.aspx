@@ -7,7 +7,7 @@
         The built in ValidationSummary cannot link to fields, so it is not used.
     --%>
     <asp:PlaceHolder ID="ErrorSummary" runat="server" Visible="false">
-        <div class="error-summary" id="error-summary" tabindex="-1">
+        <div class="error-summary" id="error-summary" tabindex="-1" data-focus-on-load>
             <h2 id="error-summary-title">There is a problem</h2>
             <ul aria-labelledby="error-summary-title">
                 <asp:Repeater ID="ErrorList" runat="server" ItemType="ClaimsPortal.WebForms.DefaultPage+SummaryItem">
@@ -50,20 +50,26 @@
             <asp:RadioButtonList ID="StatusFilter" runat="server" RepeatLayout="UnorderedList" CssClass="radio-list" />
         </fieldset>
 
-        <asp:Button ID="FindButton" runat="server" Text="Find claims" CssClass="btn btn--primary" OnClick="FindButton_Click" />
+        <%--
+            CausesValidation="false" stops Web Forms writing an inline onclick postback handler, which the
+            content security policy would block. FindButton_Click calls Page.Validate() itself instead.
+        --%>
+        <asp:Button ID="FindButton" runat="server" Text="Find claims" CssClass="btn btn--primary"
+            CausesValidation="false" OnClick="FindButton_Click" />
     </div>
 
     <asp:PlaceHolder ID="Results" runat="server" Visible="false">
-        <h2 id="results-title" tabindex="-1">Results</h2>
+        <h2 id="results-title" tabindex="-1" data-focus-on-load>Results</h2>
         <p><asp:Literal ID="ResultCount" runat="server" Mode="Encode" /></p>
 
         <div class="table-wrap" role="region" aria-labelledby="results-title" tabindex="0">
             <%--
                 UseAccessibleHeader renders <th scope="col"> instead of <td> for headers, and the
                 code behind sets TableSection so the header row goes in a <thead>.
+                CellSpacing="-1" stops the inline style="border-collapse:collapse" that the policy would block.
             --%>
             <asp:GridView ID="ClaimsGrid" runat="server" AutoGenerateColumns="false" UseAccessibleHeader="true"
-                CssClass="table" GridLines="None" Caption="Your weekly claims" CaptionAlign="NotSet"
+                CssClass="table" GridLines="None" CellSpacing="-1" Caption="Your weekly claims" CaptionAlign="NotSet"
                 ItemType="ClaimsPortal.WebForms.LegacyClaim" OnDataBound="ClaimsGrid_DataBound">
                 <Columns>
                     <asp:BoundField DataField="ClaimNumber" HeaderText="Claim number" />

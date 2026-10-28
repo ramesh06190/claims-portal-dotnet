@@ -8,6 +8,7 @@
     <title><%: Page.Title %> | Claims Portal (Web Forms)</title>
     <link rel="stylesheet" href="<%: ResolveUrl("~/Content/design-system.css") %>" />
     <link rel="stylesheet" href="<%: ResolveUrl("~/Content/app.css") %>" />
+    <script src="<%: ResolveUrl("~/Scripts/site.js") %>" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to main content</a>

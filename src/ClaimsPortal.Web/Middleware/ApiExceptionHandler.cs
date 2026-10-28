@@ -11,7 +11,11 @@ public sealed partial class ApiExceptionHandler(IProblemDetailsService problemDe
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        if (!httpContext.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+        // UseExceptionHandler("/error") has already rewritten Request.Path to /error by the time
+        // handlers run, so the path the caller asked for comes from the feature instead
+        var originalPath = httpContext.Features.Get<IExceptionHandlerPathFeature>()?.Path ?? httpContext.Request.Path;
+        if (!originalPath.StartsWith("/api/", StringComparison.OrdinalIgnoreCase)
+            && !originalPath.Equals("/api", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

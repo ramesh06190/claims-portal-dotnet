@@ -1,6 +1,6 @@
 <!--
-  ASP.NET Web Forms on .NET Framework 4.8, in an SDK style project so it builds with
-  `dotnet build` and in CI (MSBuild.SDK.SystemWeb). Run it from Visual Studio with IIS Express.
+  ASP.NET Web Forms on .NET Framework 4.8, in an SDK style project (MSBuild.SDK.SystemWeb).
+  It builds with Visual Studio's MSBuild, locally and in CI. Run it from Visual Studio with IIS Express.
 -->
 <Project Sdk="MSBuild.SDK.SystemWeb/4.0.107">
 

@@ -485,3 +485,8 @@ $RECYCLE.BIN/
 src/ClaimsPortal.WebForms/bin/
 src/ClaimsPortal.WebForms/obj/
 .vs/
+
+# Accessibility tests and coverage output
+tests/accessibility/playwright-report/
+coverage/
+docs/images/video-tmp/

@@ -13,6 +13,9 @@ jobs:
   dotnet:
     name: .NET 10 build and tests
     runs-on: ubuntu-latest
+    env:
+      # The build fails if line coverage of hand written code drops below this
+      MIN_LINE_COVERAGE: 85
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +24,9 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore ClaimsPortal.slnx
+        run: |
+          dotnet restore ClaimsPortal.slnx
+          dotnet tool restore
 
       - name: Build (warnings are errors, analyzers on)
         run: dotnet build ClaimsPortal.slnx --configuration Release --no-restore
@@ -30,19 +35,83 @@ jobs:
         run: dotnet list ClaimsPortal.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt && ! grep -q "has the following vulnerable packages" vulnerable.txt
 
       - name: Check the EF Core model matches the migrations
-        run: |
-          dotnet tool restore
-          dotnet ef migrations has-pending-model-changes --project src/ClaimsPortal.Infrastructure --startup-project src/ClaimsPortal.Web
+        run: dotnet ef migrations has-pending-model-changes --project src/ClaimsPortal.Infrastructure --startup-project src/ClaimsPortal.Web
 
       - name: Test
-        run: dotnet test ClaimsPortal.slnx --configuration Release --no-build --logger "trx;LogFileName=results.trx" --collect "XPlat Code Coverage"
+        run: dotnet test ClaimsPortal.slnx --configuration Release --no-build --settings coverage.runsettings --logger "trx;LogFileName=results.trx" --collect "XPlat Code Coverage"
 
-      - name: Save test results
+      - name: Coverage report and minimum
+        run: |
+          dotnet reportgenerator -reports:"tests/**/coverage.cobertura.xml" -targetdir:coverage -reporttypes:"HtmlInline;MarkdownSummaryGithub;JsonSummary"
+          cat coverage/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+          line=$(jq '.summary.linecoverage' coverage/Summary.json)
+          echo "Line coverage: ${line}% (minimum ${MIN_LINE_COVERAGE}%)"
+          awk -v line="$line" -v min="$MIN_LINE_COVERAGE" 'BEGIN { exit !(line >= min) }' \
+            || { echo "::error::Line coverage ${line}% is below the ${MIN_LINE_COVERAGE}% minimum"; exit 1; }
+
+      - name: Save test results and coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: tests/**/TestResults/**
+          path: |
+            tests/**/TestResults/**
+            coverage/**
+
+  accessibility:
+    name: Accessibility and keyboard tests (axe, Playwright)
+    runs-on: ubuntu-latest
+    services:
+      # Throwaway SQL Server for this job only. The password never leaves the runner.
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: Ci-only-Passw0rd!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Ci-only-Passw0rd!' -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      ConnectionStrings__Claims: Server=localhost,1433;Database=ClaimsPortal;User Id=sa;Password=Ci-only-Passw0rd!;Encrypt=True;TrustServerCertificate=True
+    defaults:
+      run:
+        working-directory: tests/accessibility
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tests/accessibility/package-lock.json
+
+      - name: Install test tools
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Build the app
+        run: dotnet build ../../src/ClaimsPortal.Web --configuration Release
+
+      # Starts the MVC app (it migrates and seeds the database on startup), then runs axe and the
+      # keyboard tests in light and dark color schemes
+      - name: Run axe and keyboard tests
+        run: npx playwright test
+
+      - name: Save the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/accessibility/playwright-report/
 
   webforms:
     name: Web Forms (.NET Framework 4.8) build

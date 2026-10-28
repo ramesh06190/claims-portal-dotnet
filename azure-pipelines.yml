@@ -1,0 +1,80 @@
+# Azure DevOps version of .github/workflows/ci.yml, for teams that build in Azure Pipelines.
+# Same checks: warnings as errors, vulnerable package check, EF Core model check, tests with a
+# coverage minimum, and the Web Forms build on Windows. Test results and coverage are published
+# to the pipeline's Tests and Code Coverage tabs.
+
+trigger:
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main]
+
+variables:
+  buildConfiguration: Release
+  minLineCoverage: 85
+
+stages:
+  - stage: Build
+    jobs:
+      - job: dotnet
+        displayName: .NET 10 build and tests
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: UseDotNet@2
+            displayName: Install .NET 10 SDK
+            inputs:
+              packageType: sdk
+              version: 10.0.x
+
+          - script: |
+              dotnet restore ClaimsPortal.slnx
+              dotnet tool restore
+            displayName: Restore
+
+          - script: dotnet build ClaimsPortal.slnx --configuration $(buildConfiguration) --no-restore
+            displayName: Build (warnings are errors, analyzers on)
+
+          - script: dotnet list ClaimsPortal.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt && ! grep -q "has the following vulnerable packages" vulnerable.txt
+            displayName: Check for vulnerable packages
+
+          - script: dotnet ef migrations has-pending-model-changes --project src/ClaimsPortal.Infrastructure --startup-project src/ClaimsPortal.Web
+            displayName: Check the EF Core model matches the migrations
+
+          - script: dotnet test ClaimsPortal.slnx --configuration $(buildConfiguration) --no-build --settings coverage.runsettings --logger trx --collect "XPlat Code Coverage" --results-directory $(Agent.TempDirectory)/TestResults
+            displayName: Test
+
+          - task: PublishTestResults@2
+            displayName: Publish test results
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: VSTest
+              testResultsFiles: $(Agent.TempDirectory)/TestResults/**/*.trx
+
+          - script: |
+              dotnet reportgenerator -reports:"$(Agent.TempDirectory)/TestResults/**/coverage.cobertura.xml" -targetdir:coverage -reporttypes:"Cobertura;JsonSummary"
+              line=$(jq '.summary.linecoverage' coverage/Summary.json)
+              echo "Line coverage: ${line}% (minimum $(minLineCoverage)%)"
+              awk -v line="$line" -v min="$(minLineCoverage)" 'BEGIN { exit !(line >= min) }' \
+                || { echo "##vso[task.logissue type=error]Line coverage ${line}% is below the $(minLineCoverage)% minimum"; exit 1; }
+            displayName: Coverage report and minimum
+
+          - task: PublishCodeCoverageResults@2
+            displayName: Publish coverage
+            condition: succeededOrFailed()
+            inputs:
+              summaryFileLocation: coverage/Cobertura.xml
+
+      - job: webforms
+        displayName: Web Forms (.NET Framework 4.8) build
+        pool:
+          vmImage: windows-latest
+        steps:
+          - task: MSBuild@1
+            displayName: Build
+            inputs:
+              solution: src/ClaimsPortal.WebForms/ClaimsPortal.WebForms.csproj
+              configuration: $(buildConfiguration)
+              msbuildArguments: -restore -nologo
